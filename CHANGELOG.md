@@ -1,5 +1,12 @@
 # CHANGELOG — addon de agentes
 
+## 0.3 — 2026-10-22
+
+- `reparto.yaml`: configuración por rol con modelo, entorno, cwd, accesos (`rw`/`ro`) y trigger.
+- Trigger con tres modos: `agente`, `tiempo`, `usuario`, con `desde` y `cada` según corresponda.
+- Permisos por ruta: el QA lee el build y escribe solo en `evidencia/`.
+- Validación al arrancar: una ruta declarada que no existe bloquea el rol.
+
 ## 0.2 — 2026-10-22
 
 - Nuevo `trigger.md`: el sistema son dos piezas, buzón + trigger. Sin trigger, el buzón está muerto.

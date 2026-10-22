@@ -40,6 +40,20 @@ Un rol está **suscripto** si cumple al menos una:
 
 Si no cumple ninguna, no está en el sistema, aunque tenga rol asignado.
 
+### Modo declarado → mecanismo
+
+El `modo` en `reparto.yaml` no impone una tecnología; dice qué tiene que pasar.
+
+| `modo` | Qué tiene que pasar | Mecanismo típico |
+|---|---|---|
+| `agente` | el rol se despierta cuando otro le deja un mensaje | watcher o hook |
+| `tiempo` | el rol revisa cada intervalo, haya o no mensaje | loop del entorno o cron |
+| `usuario` | el rol actúa solo cuando el humano lo invoca | el humano, o obligación en el turno |
+
+En los tres casos, si no hay automatización disponible, rige el piso universal: leer el buzón al
+inicio y al final del turno. Eso convierte cualquier chat en un participante válido, más lento
+pero funcional.
+
 ## 4. Ejemplos por entorno
 
 Son ejemplos, no requisitos. La regla es la de arriba.
