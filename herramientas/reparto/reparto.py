@@ -21,6 +21,14 @@ import json
 import os
 import sys
 
+# En consolas Windows (cp1252) un carácter fuera del juego de código rompe la salida.
+# Se fuerza UTF-8 y, si falla, se reemplaza en vez de abortar.
+for flujo in (sys.stdout, sys.stderr):
+    try:
+        flujo.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 EXIT_OK = 0
 EXIT_INVALID = 1
 EXIT_ERROR = 2
@@ -178,7 +186,7 @@ def cmd_ver(args, ruta):
         trig = rol.get("trigger", {})
         detalle = trig.get("modo", "?")
         if detalle == "agente":
-            detalle += f" ← {', '.join(trig.get('desde') or []) or 'nadie'}"
+            detalle += f" <- {', '.join(trig.get('desde') or []) or 'nadie'}"
         elif detalle == "tiempo":
             detalle += f" cada {trig.get('cada')}"
         accesos = ", ".join(f"{a.get('ruta')}:{a.get('modo')}" for a in rol.get("acceso", []))
