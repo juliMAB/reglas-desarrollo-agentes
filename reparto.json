@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "roles": {
+    "constructor": {
+      "modelo": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+      "entorno": "opencode",
+      "cwd": "~/proyectos/android/frase-del-dia-app",
+      "acceso": [
+        { "ruta": "~/proyectos/android/frase-del-dia-app", "modo": "rw" },
+        { "ruta": "~/proyectos/android/frase-del-dia-contratos", "modo": "ro" }
+      ],
+      "trigger": {
+        "modo": "agente",
+        "desde": ["orquestador"],
+        "cada": null
+      },
+      "entrega": ["repo", "commit", "evidencia/<slug>.md"]
+    },
+    "qa": {
+      "modelo": "openrouter/stealth/space-bunny-alpha",
+      "entorno": "opencode",
+      "cwd": "~/proyectos/android",
+      "acceso": [
+        { "ruta": "~/proyectos/android/frase-del-dia-app/build", "modo": "ro" },
+        { "ruta": "~/proyectos/android/frase-del-dia-app/evidencia", "modo": "rw" },
+        { "ruta": "~/proyectos/android/frase-del-dia-app/src", "modo": "ro" }
+      ],
+      "trigger": {
+        "modo": "agente",
+        "desde": ["constructor", "orquestador"],
+        "cada": null
+      },
+      "entrega": ["evidencia/QA-<slug>.md"]
+    },
+    "orquestador": {
+      "modelo": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+      "entorno": "opencode",
+      "cwd": "~/proyectos/android",
+      "acceso": [
+        { "ruta": "~/proyectos/android", "modo": "rw" }
+      ],
+      "trigger": {
+        "modo": "usuario",
+        "desde": [],
+        "cada": null
+      },
+      "entrega": ["reparto.json", "estado del ciclo"]
+    }
+  }
+}

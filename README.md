@@ -42,8 +42,9 @@ Por tag, no por rama. Si la skill cambia, este addon decide cuándo migrar.
 
 | Archivo | Qué define |
 |---|---|
-| `reparto.yaml` | Configuración real: modelos, entorno, cwd, accesos y triggers |
-| `reparto.md` | Explicación de los campos y reglas del reparto |
+| `reparto.json` | Configuración real: modelos, entorno, cwd, accesos y triggers |
+| `reparto.md` | Explicación de los campos, reglas y uso del CLI |
+| `herramientas/reparto/` | CLI `reparto.py`: validar, ver, set, acceso (11 tests) |
 | `handoff.md` | Qué viaja entre roles y en qué formato |
 | `trigger.md` | Buzón + mecanismo que despierta a cada rol |
 | `CHANGELOG.md` | Qué cambió y por qué |

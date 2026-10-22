@@ -1,5 +1,12 @@
 # CHANGELOG — addon de agentes
 
+## 0.4 — 2026-10-22
+
+- Formato canónico `reparto.json`: sin dependencias YAML, legible y escribible por stdlib.
+- CLI `herramientas/reparto/reparto.py`: `validar`, `ver`, `set`, `acceso`. 11 tests.
+- Códigos 0/1/2 igual que el validador: válido, inválido, no se pudo leer.
+- `--rutas` verifica que las rutas declaradas existan, para el arranque del ciclo.
+
 ## 0.3 — 2026-10-22
 
 - `reparto.yaml`: configuración por rol con modelo, entorno, cwd, accesos (`rw`/`ro`) y trigger.

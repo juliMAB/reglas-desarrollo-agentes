@@ -1,7 +1,7 @@
 # reparto.md — quién hace qué, cómo se despierta y a qué entra
 
-> La configuración vive en `reparto.yaml`. Este archivo explica los campos y las reglas.
-> Lo escribe el orquestador, lo aprueba el humano. Sin `reparto.yaml` válido, el ciclo no arranca.
+> La configuración vive en `reparto.json`. Este archivo explica los campos y las reglas.
+> Lo escribe el orquestador, lo aprueba el humano. Sin `reparto.json` válido, el ciclo no arranca.
 
 ## Campos por rol
 
@@ -53,18 +53,34 @@ es un bloqueo declarado, no un olvido.
 9. **Todos con todos.** Cualquier rol escribe a cualquier otro por el buzón. La restricción de M8
    aplica a módulos de software, no a roles.
 
-## Ejemplo mínimo
+## Herramienta: `reparto.py`
 
-```yaml
-roles:
-  constructor:
-    trigger: { modo: agente, desde: ["orquestador"] }
-    acceso: [{ ruta: "~/proyectos/app", modo: rw }]
-  qa:
-    trigger: { modo: agente, desde: ["constructor"] }
-    acceso: [{ ruta: "~/proyectos/app/build", modo: ro }]
-  orquestador:
-    trigger: { modo: usuario }
+```
+reparto.py validar [--rutas] [--json]        # 0 válido · 1 inválido · 2 no se pudo leer
+reparto.py ver [rol]
+reparto.py set <rol> --modelo M --entorno E --cwd C --trigger T [--desde a,b] [--cada 10m]
+reparto.py acceso <rol> add|rm <ruta> [--modo rw|ro]
 ```
 
-El archivo completo, con todos los campos, es `reparto.yaml`.
+`--config <ruta>` o `REPARTO_CONFIG` para usar otro archivo. Por defecto `./reparto.json`.
+`--rutas` exige que las rutas declaradas existan, que es lo que corresponde al arrancar el ciclo.
+
+## Ejemplo mínimo
+
+```json
+{
+  "version": 1,
+  "roles": {
+    "constructor": {
+      "modelo": "proveedor/modelo",
+      "entorno": "opencode",
+      "cwd": "~/proyectos/app",
+      "acceso": [{ "ruta": "~/proyectos/app", "modo": "rw" }],
+      "trigger": { "modo": "agente", "desde": ["orquestador"], "cada": null },
+      "entrega": ["repo", "commit"]
+    }
+  }
+}
+```
+
+El archivo completo, con los tres roles, es `reparto.json`.
