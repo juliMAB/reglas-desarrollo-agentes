@@ -15,6 +15,15 @@ construcción: las usa.
 **No es:**
 - El transporte. El buzón, el hub y los wake-ups son una implementación, no este documento.
 - Las reglas de arquitectura, puertos o QA: viven en la skill v1.2.0.
+- Un componente de OpenClaw. El addon no depende de OpenClaw ni de ningún orquestador central:
+  los roles pueden correr en sesiones separadas de la misma herramienta, o en herramientas
+  distintas, siempre que puedan leer estos archivos y usar el buzón.
+
+## Independencia de herramienta
+
+Nada acá asume una plataforma. Los tres roles pueden ser tres sesiones de opencode con modelos
+distintos, comunicadas por el hub local. El humano decide el reparto y aprueba; ningún agente es
+el dueño del ciclo.
 
 ## Dependencia
 

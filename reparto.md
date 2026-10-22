@@ -11,7 +11,6 @@
 | `constructor` | `<proveedor/modelo>` | crear y modificar el proyecto; correr su build | aprobar su propio trabajo; tocar la evidencia del QA | repo + commit + `evidencia/` |
 | `qa` | `<proveedor/modelo>` | instalar, ejecutar, capturar; reabrir | modificar código del proyecto | veredicto en `evidencia/QA-<slug>.md` |
 | `orquestador` | `<proveedor/modelo>` | asignar, desbloquear, integrar | construir o aprobar | `reparto.md` actualizado + estado |
-| `verificador` (opcional) | `<proveedor/modelo>` | auditar contratos, puertos, evidencia | construir, aprobar producto | informe de auditoría |
 
 ## Reglas del reparto
 
@@ -23,6 +22,11 @@
 5. **El modelo es una decisión del usuario.** El orquestador propone, no impone.
 6. **Cambiar el reparto en medio de un ciclo** exige cerrar el ciclo actual o reiniciarlo, no
    mezclar quién empezó con quién termina.
+7. **Independiente de la herramienta.** Los roles pueden correr en la misma herramienta o en
+tres distintas. El addon no asume OpenClaw, ni sesiones de un agente en particular, ni un
+orquestador central. Solo asume que cada rol puede leer estos archivos y usar el buzón.
+8. **El orquestador también es un rol con modelo asignado.** No es el humano ni el dueño de la
+herramienta; es un agente más, sujeto a las mismas reglas. El humano decide y aprueba el reparto.
 
 ## Ejemplo
 
@@ -30,7 +34,8 @@
 |---|---|---|---|---|
 | `constructor` | `openrouter/nvidia/nemotron-3-ultra-550b-a55b:free` | crear el proyecto, build, pruebas locales | aprobar; editar evidencia del QA | repo + `evidencia/<slug>.md` |
 | `qa` | `openrouter/stealth/space-bunny-alpha` | instalar, ejecutar, capturar, reabrir | tocar `src/` | `evidencia/QA-<slug>.md` con veredicto |
-| `orquestador` | este agente | asignar, desbloquear, integrar | construir | estado del ciclo |
+| `orquestador` | `openrouter/nvidia/nemotron-3-ultra-550b-a55b:free` | asignar, desbloquear, integrar | construir o aprobar | estado del ciclo |
+| `verificador` (opcional) | `sin asignar` | auditar contratos, puertos, evidencia | construir, aprobar producto | informe de auditoría |
 
 ## Asignación pendiente
 
