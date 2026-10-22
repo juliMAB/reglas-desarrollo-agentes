@@ -11,6 +11,7 @@
 | `constructor` | `<proveedor/modelo>` | crear y modificar el proyecto; correr su build | aprobar su propio trabajo; tocar la evidencia del QA | repo + commit + `evidencia/` |
 | `qa` | `<proveedor/modelo>` | instalar, ejecutar, capturar; reabrir | modificar código del proyecto | veredicto en `evidencia/QA-<slug>.md` |
 | `orquestador` | `<proveedor/modelo>` | asignar, desbloquear, integrar | construir o aprobar | `reparto.md` actualizado + estado |
+| `verificador` (opcional) | `<proveedor/modelo>` | auditar contratos, puertos, evidencia | construir, aprobar producto | informe de auditoría |
 
 ## Reglas del reparto
 
