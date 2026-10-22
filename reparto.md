@@ -24,10 +24,13 @@
 6. **Cambiar el reparto en medio de un ciclo** exige cerrar el ciclo actual o reiniciarlo, no
    mezclar quién empezó con quién termina.
 7. **Independiente de la herramienta.** Los roles pueden correr en la misma herramienta o en
-tres distintas. El addon no asume OpenClaw, ni sesiones de un agente en particular, ni un
-orquestador central. Solo asume que cada rol puede leer estos archivos y usar el buzón.
+tres distintas, y pueden mezclar entornos: opencode, DeepSeek Harness, OpenClaw, Claude Code, o
+uno sin nombre. El addon no asume plataforma, ni un orquestador central. Solo asume que cada rol
+puede leer el buzón y ser despertado (ver `trigger.md`).
 8. **El orquestador también es un rol con modelo asignado.** No es el humano ni el dueño de la
 herramienta; es un agente más, sujeto a las mismas reglas. El humano decide y aprueba el reparto.
+9. **Todos con todos.** Cualquier rol puede escribirle a cualquier otro a través del buzón. La
+restricción de M8 aplica a módulos de software, no a roles de un ciclo.
 
 ## Ejemplo
 

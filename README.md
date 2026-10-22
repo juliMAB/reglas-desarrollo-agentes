@@ -21,9 +21,14 @@ construcción: las usa.
 
 ## Independencia de herramienta
 
-Nada acá asume una plataforma. Los tres roles pueden ser tres sesiones de opencode con modelos
-distintos, comunicadas por el hub local. El humano decide el reparto y aprueba; ningún agente es
-el dueño del ciclo.
+Nada acá asume una plataforma. Sirve en cualquier entorno de chat con IA que pueda leer el buzón y
+ejecutar un turno: OpenClaw, opencode, DeepSeek Harness, Claude Code, o uno sin nombre.
+
+El sistema son dos piezas: **buzón** (los mensajes como datos) y **trigger** (lo que obliga al rol a
+mirarlos). Ver `trigger.md`.
+
+Cualquier rol puede escribirle a cualquier otro. El buzón es un espacio común, no una jerarquía.
+El humano decide el reparto y lo aprueba; ningún agente es el dueño del ciclo.
 
 ## Dependencia
 
@@ -39,6 +44,7 @@ Por tag, no por rama. Si la skill cambia, este addon decide cuándo migrar.
 |---|---|
 | `reparto.md` | Rol, modelo, permisos y entregable de cada agente |
 | `handoff.md` | Qué viaja entre roles y en qué formato |
+| `trigger.md` | Buzón + mecanismo que despierta a cada rol |
 | `CHANGELOG.md` | Qué cambió y por qué |
 
 ## Cómo se usa
