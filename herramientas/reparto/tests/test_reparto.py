@@ -134,6 +134,18 @@ class RepartoTests(unittest.TestCase):
         codigo, salida = correr(os.path.join(self.tmp.name, "nada.json"), "validar")
         self.assertEqual(codigo, 2, salida)
 
+    def test_rutas_relativas_se_resuelven_contra_el_config(self):
+        # La configuración vive en tmp/, con rutas relativas a ese directorio.
+        os.makedirs(os.path.join(self.tmp.name, "proyecto"), exist_ok=True)
+        datos = self.leer()
+        datos["roles"]["constructor"]["cwd"] = "proyecto"
+        datos["roles"]["constructor"]["acceso"] = [{"ruta": "proyecto", "modo": "rw"}]
+        with open(self.cfg, "w", encoding="utf-8") as fh:
+            json.dump(datos, fh)
+        # Se ejecuta desde otro directorio: debe resolver contra el del config.
+        codigo, salida = correr(self.cfg, "validar", "--rutas")
+        self.assertEqual(codigo, 0, salida)
+
 
 if __name__ == "__main__":
     unittest.main()

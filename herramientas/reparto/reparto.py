@@ -58,7 +58,13 @@ def guardar(ruta, datos):
     os.replace(tmp, ruta)
 
 
-def validar(datos, revisar_rutas=False):
+def _abs(p, base):
+    """Resuelve rutas relativas contra el directorio del archivo de configuración."""
+    p = os.path.expanduser(p)
+    return p if os.path.isabs(p) else os.path.normpath(os.path.join(base, p))
+
+
+def validar(datos, revisar_rutas=False, base_dir="."):
     """Devuelve (errores, avisos)."""
     errores, avisos = [], []
 
@@ -91,7 +97,7 @@ def validar(datos, revisar_rutas=False):
         cwd = rol.get("cwd")
         if not isinstance(cwd, str) or not cwd.strip():
             errores.append((f"{base}.cwd", "falta cwd"))
-        elif revisar_rutas and not os.path.isdir(os.path.expanduser(cwd)):
+        elif revisar_rutas and not os.path.isdir(_abs(cwd, base_dir)):
             errores.append((f"{base}.cwd", f"la ruta no existe: {cwd}"))
 
         accesos = rol.get("acceso", [])
@@ -105,7 +111,7 @@ def validar(datos, revisar_rutas=False):
                     continue
                 if not isinstance(acc.get("ruta"), str) or not acc["ruta"].strip():
                     errores.append((p, "falta ruta"))
-                elif revisar_rutas and not os.path.exists(os.path.expanduser(acc["ruta"])):
+                elif revisar_rutas and not os.path.exists(_abs(acc["ruta"], base_dir)):
                     errores.append((p, f"la ruta no existe: {acc['ruta']}"))
                 if acc.get("modo") not in MODOS_ACCESO:
                     errores.append((p, f"modo inválido: {acc.get('modo')!r}"))
@@ -156,7 +162,8 @@ def _salida(errores, avisos, como_json, extra=None):
 
 def cmd_validar(args, ruta):
     datos = cargar(ruta)
-    errores, avisos = validar(datos, revisar_rutas="--rutas" in args)
+    errores, avisos = validar(datos, revisar_rutas="--rutas" in args,
+                              base_dir=os.path.dirname(os.path.abspath(ruta)))
     _salida(errores, avisos, "--json" in args)
     return EXIT_INVALID if errores else EXIT_OK
 
@@ -226,7 +233,8 @@ def cmd_set(args, ruta):
     if cada is not None:
         rol.setdefault("trigger", {})["cada"] = cada or None
 
-    errores, avisos = validar(datos, revisar_rutas="--rutas" in args)
+    errores, avisos = validar(datos, revisar_rutas="--rutas" in args,
+                              base_dir=os.path.dirname(os.path.abspath(ruta)))
     if errores:
         _salida(errores, avisos, "--json" in args)
         return EXIT_INVALID
@@ -262,7 +270,7 @@ def cmd_acceso(args, ruta):
         print("accion inválida: add | rm")
         return EXIT_ERROR
 
-    errores, avisos = validar(datos)
+    errores, avisos = validar(datos, base_dir=os.path.dirname(os.path.abspath(ruta)))
     if errores:
         _salida(errores, avisos, "--json" in args)
         return EXIT_INVALID

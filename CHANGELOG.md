@@ -1,5 +1,10 @@
 # CHANGELOG — addon de agentes
 
+## 0.6 — 2026-10-22
+
+- CLI: las rutas relativas se resuelven contra el directorio del `reparto.json`, no contra el cwd.
+  Validar desde cualquier lado da el mismo resultado. 12 tests.
+
 ## 0.5 — 2026-10-22
 
 - Regla: el QA recibe `ro` sobre las herramientas que necesita para verificar (validador, scripts).
