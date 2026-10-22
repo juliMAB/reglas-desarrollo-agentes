@@ -131,6 +131,8 @@ def validar(datos, revisar_rutas=False):
 
         if not isinstance(rol.get("entrega", []), list):
             errores.append((f"{base}.entrega", "debe ser lista"))
+        elif not rol.get("entrega"):
+            avisos.append((f"{base}.entrega", "vacía: el rol no declara qué deja al cerrar"))
 
     return errores, avisos
 

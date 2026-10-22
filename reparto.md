@@ -37,6 +37,9 @@ es un bloqueo declarado, no un olvido.
 4. **Se verifica al arrancar.** Si una ruta declarada no existe, el rol queda bloqueado. No se crea
    sola ni se asume.
 5. **Un rol no otorga accesos.** Solo el humano, a través del orquestador.
+6. **El QA recibe `ro` sobre las herramientas que necesita para verificar.** Si un criterio exige
+   correr el validador o un script de prueba, esa herramienta tiene que estar en su `acceso`. Un
+   criterio que el QA no puede ejecutar es un criterio mal entregado, no una falla del QA.
 
 ## Reglas del reparto
 

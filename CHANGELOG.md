@@ -1,5 +1,11 @@
 # CHANGELOG — addon de agentes
 
+## 0.5 — 2026-10-22
+
+- Regla: el QA recibe `ro` sobre las herramientas que necesita para verificar (validador, scripts).
+- `handoff.md`: si el proyecto no es repo git, `repo` y `commit` van en `null` y se agrega `carpeta`.
+- CLI: `entrega` vacía pasa a aviso en `validar`.
+
 ## 0.4 — 2026-10-22
 
 - Formato canónico `reparto.json`: sin dependencias YAML, legible y escribible por stdlib.

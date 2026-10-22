@@ -56,6 +56,9 @@ Un `reabierto` siempre incluye: qué falló, cómo se reproduce, y qué evidenci
 6. **El estado lo cambia el rol que corresponde.** El constructor no se pone `aprobado`.
 7. **Silencio no es avance.** Un handoff sin cambio de estado en el plazo acordado se reporta como
    bloqueado.
+8. **Si el proyecto no es un repo git**, `repo` va en `null`, `commit` en `null` y se agrega
+   `carpeta` con la ruta. Una ruta local no se presenta como repo: el QA no puede fijar qué versión
+   revisó si no hay commit.
 
 ## 4. Flujo mínimo
 
