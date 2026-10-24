@@ -61,8 +61,11 @@ pero funcional.
 ```
 watcher.py --todos                 # loop: mira todos los buzones
 watcher.py qa --once               # una pasada, útil para cron o para probar
-watcher.py estado qa               # qué tiene pendiente el rol
-watcher.py qa --seco               # muestra qué haría, sin ejecutar ni recordar
+watcher.py estado                 # estado del turno de todos los roles
+watcher.py estado qa              # qué tiene pendiente y en qué anda QA
+watcher.py eventos --n 20         # bitácora del ciclo
+watcher.py eventos --seguir       # bitácora en vivo (tail -f)
+watcher.py qa --seco              # muestra qué haría, sin ejecutar ni recordar
 ```
 
 Qué garantiza:
@@ -78,6 +81,10 @@ Qué garantiza:
   mensaje.
 - **Registra el resultado.** Cada despertar queda con código de salida. Un comando fallido no se
   reintenta en loop hasta que el archivo cambie.
+- **Deja dos rastros.** `.watcher/eventos.jsonl` (append-only: despierta, fin, lock, bloqueado) y
+  `.watcher/turno/<rol>.json` (estado publicado del turno: `trabajando`, `termino`, `fallo`,
+  `bloqueado`, con quién, handoff y desde cuándo). Son la fuente de la vista; el contrato de
+  handoff no cambia.
 
 El mensaje no se pasa por argumentos: el comando lo lee de `REPARTO_ARCHIVO` (y
 `REPARTO_HANDOFF_ID`). Por eso el mismo comando sirve para cualquier mensaje.

@@ -48,7 +48,7 @@ Por tag, no por rama. Si la skill cambia, este addon decide cuándo migrar.
 | `reparto.json` | Configuración real: modelos, entorno, cwd, accesos y triggers |
 | `reparto.md` | Explicación de los campos, reglas y uso del CLI |
 | `herramientas/reparto/` | CLI `reparto.py`: validar, ver, set, acceso (24 tests) |
-| `herramientas/watcher/` | Watcher: despierta al rol por mensaje o intervalo (15 tests) |
+| `herramientas/watcher/` | Watcher: despierta al rol, deja eventos y estado del turno (22 tests) |
 | `handoff.md` | Qué viaja entre roles y en qué formato |
 | `trigger.md` | Buzón + mecanismo que despierta a cada rol |
 | `CHANGELOG.md` | Qué cambió y por qué |

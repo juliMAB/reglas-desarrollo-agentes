@@ -13,7 +13,8 @@ Uso:
     watcher.py <rol> [<rol> ...] [--once] [--seco] [--intervalo 5]
                [--timeout 600] [--buzon DIR] [--estado-dir DIR] [--config RUTA]
     watcher.py --todos [--once]
-    watcher.py estado <rol>
+    watcher.py estado [<rol>]
+    watcher.py eventos [--rol ROL] [--n 20] [--seguir]
 
 Sin --once corre en loop. --seco muestra lo que haria sin ejecutar ni recordar.
 El comando recibe:
@@ -91,6 +92,22 @@ def guardar_json(ruta, datos):
         json.dump(datos, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
     os.replace(tmp, ruta)
+
+
+def anotar(ruta, rol, accion, **campos):
+    """Agrega una linea al eventos.jsonl. Append-only, sin reescribir."""
+    os.makedirs(os.path.dirname(ruta) or ".", exist_ok=True)
+    evento = {"ts": ahora(), "rol": rol, "accion": accion}
+    evento.update(campos)
+    with open(ruta, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(evento, ensure_ascii=False) + "\n")
+
+
+def marcar_turno(ruta, rol, estado, **campos):
+    """Estado publicado del turno, para la vista. Atómico."""
+    datos = {"rol": rol, "estado": estado, "actualizado": ahora()}
+    datos.update(campos)
+    guardar_json(ruta, datos)
 
 
 def firma(ruta):
@@ -296,6 +313,8 @@ def preparar(rol_nombre, rol, base_dir, cfg_path, buzon_base, estado_dir):
         "estado": estado,
         "estado_path": estado_path,
         "lock_path": os.path.join(estado_dir, f"{rol_nombre}.lock"),
+        "turno_path": os.path.join(estado_dir, "turno", f"{rol_nombre}.json"),
+        "eventos_path": os.path.join(estado_dir, "eventos.jsonl"),
     })
 
 
@@ -313,27 +332,58 @@ def pasada_rol(ctx, cfg_path, timeout, seco):
 
     lock = lock_adquirir(ctx["lock_path"], timeout)
     if not lock:
-        print(f"SALTA {rol}: lock ocupado (pid {lock_ocupado_por(ctx['lock_path'])})")
+        pid = lock_ocupado_por(ctx["lock_path"])
+        print(f"SALTA {rol}: lock ocupado (pid {pid})")
+        if not seco:
+            anotar(ctx["eventos_path"], rol, "lock", resultado="ocupado", pid=pid)
+            marcar_turno(ctx["turno_path"], rol, "bloqueado", motivo="lock ocupado", pid=pid)
         return EXIT_OK
 
     try:
         if ctx["modo"] == "tiempo":
+            inicio = ahora()
             print(f"DESPIERTA {rol}: trigger tiempo (cada {ctx['cada']}s)")
+            if not seco:
+                anotar(ctx["eventos_path"], rol, "despierta", motivo="tiempo", desde=inicio)
+                marcar_turno(ctx["turno_path"], rol, "trabajando", desde=inicio, pid=os.getpid())
+            t0 = time.time()
             codigo = ejecutar(rol, ctx["comando"], ctx["cwd"],
                               entorno_de(rol, cfg_path, ctx["rol_dir"], "", ""),
                               timeout, seco)
             if not seco:
+                anotar(ctx["eventos_path"], rol, "fin", resultado=codigo,
+                       duracion_s=round(time.time() - t0, 2))
+                marcar_turno(ctx["turno_path"], rol,
+                             "termino" if codigo == 0 else "fallo",
+                             resultado=codigo, desde=inicio,
+                             duracion_s=round(time.time() - t0, 2))
                 ctx["estado"]["ultima"] = time.time()
         else:
-            codigo = 0
             for nombre, ruta, datos in lista:
-                print(f"DESPIERTA {rol} <- {nombre} ({datos.get('estado')} de {datos.get('de')},"
-                      f" id {datos.get('handoff_id')})")
+                inicio = ahora()
+                con = datos.get("de")
+                hid = datos.get("handoff_id")
+                print(f"DESPIERTA {rol} <- {nombre} ({datos.get('estado')} de {con},"
+                      f" id {hid})")
+                if not seco:
+                    anotar(ctx["eventos_path"], rol, "despierta", con=con,
+                           handoff_id=hid, archivo=nombre,
+                           estado_handoff=datos.get("estado"), desde=inicio)
+                    marcar_turno(ctx["turno_path"], rol, "trabajando", con=con,
+                                 handoff_id=hid, archivo=nombre, desde=inicio,
+                                 pid=os.getpid())
+                t0 = time.time()
                 codigo = ejecutar(rol, ctx["comando"], ctx["cwd"],
-                                  entorno_de(rol, cfg_path, ctx["rol_dir"], ruta,
-                                             datos.get("handoff_id")),
+                                  entorno_de(rol, cfg_path, ctx["rol_dir"], ruta, hid),
                                   timeout, seco)
                 if not seco:
+                    anotar(ctx["eventos_path"], rol, "fin", con=con, handoff_id=hid,
+                           resultado=codigo, duracion_s=round(time.time() - t0, 2))
+                    marcar_turno(ctx["turno_path"], rol,
+                                 "termino" if codigo == 0 else "fallo",
+                                 con=con, handoff_id=hid, archivo=nombre,
+                                 resultado=codigo, desde=inicio,
+                                 duracion_s=round(time.time() - t0, 2))
                     recordar(ctx["estado"], nombre, ruta, codigo)
         if not seco:
             guardar_json(ctx["estado_path"], ctx["estado"])
@@ -357,6 +407,11 @@ def cmd_pasada(roles, datos, base_dir, cfg_path, buzon_base, estado_dir,
             print(f"SALTA {nombre}: {error}")
             if not error.startswith(("humano", "trigger usuario")):
                 bloqueados += 1
+                if not seco:
+                    anotar(os.path.join(estado_dir, "eventos.jsonl"), nombre,
+                           "bloqueado", motivo=error)
+                    marcar_turno(os.path.join(estado_dir, "turno", f"{nombre}.json"),
+                                 nombre, "bloqueado", motivo=error)
             continue
         contextos.append(ctx)
 
@@ -368,10 +423,27 @@ def cmd_pasada(roles, datos, base_dir, cfg_path, buzon_base, estado_dir,
         time.sleep(intervalo)
 
 
+def _linea_turno(estado_dir, rol):
+    datos = cargar_json(os.path.join(estado_dir, "turno", f"{rol}.json"), None)
+    if not isinstance(datos, dict):
+        return f"TURNO {rol}: dormido"
+    con = f" con={datos['con']}" if datos.get("con") else ""
+    hid = f" id={datos['handoff_id']}" if datos.get("handoff_id") else ""
+    motivo = f" motivo=\"{datos['motivo']}\"" if datos.get("motivo") else ""
+    res = f" resultado={datos['resultado']}" if datos.get("resultado") is not None else ""
+    return (f"TURNO {rol}: {datos.get('estado')}{con}{hid}"
+            f" desde={datos.get('desde') or '-'}{res}{motivo}")
+
+
 def cli_estado(rol, datos, base_dir, buzon_base, estado_dir):
-    if rol not in datos.get("roles", {}):
+    if rol and rol not in datos.get("roles", {}):
         print(f"ERROR: no existe el rol {rol}")
         return EXIT_BLOQUEADO
+    if not rol:
+        for nombre in datos.get("roles", {}):
+            print(_linea_turno(estado_dir, nombre))
+        return EXIT_OK
+    print(_linea_turno(estado_dir, rol))
     rol_dir = os.path.join(buzon_base, rol)
     estado = cargar_json(os.path.join(estado_dir, f"{rol}.json"), {}) or {}
     desde = (datos["roles"][rol].get("trigger") or {}).get("desde") or []
@@ -383,6 +455,46 @@ def cli_estado(rol, datos, base_dir, buzon_base, estado_dir):
         print(f"PENDIENTE {nombre}: {datos_h.get('estado')} de {datos_h.get('de')}"
               f" id {datos_h.get('handoff_id')}")
     return EXIT_OK
+
+
+def cli_eventos(args, estado_dir):
+    ruta = os.path.join(estado_dir, "eventos.jsonl")
+    filtro = _valor(args, "--rol")
+    n = int(_valor(args, "--n") or 20)
+    seguir = "--seguir" in args
+
+    def leer_todo():
+        try:
+            with open(ruta, encoding="utf-8") as fh:
+                return [json.loads(l) for l in fh if l.strip()]
+        except (FileNotFoundError, json.JSONDecodeError):
+            return []
+
+    def imprimir(ev):
+        hora = str(ev.get("ts") or "")[11:19]
+        extra = " ".join(f"{k}={v}" for k, v in ev.items()
+                         if k not in ("ts", "rol", "accion") and v not in (None, ""))
+        print(f"{hora} {ev.get('rol')} {ev.get('accion')} {extra}".rstrip())
+
+    eventos = leer_todo()
+    if filtro:
+        eventos = [e for e in eventos if e.get("rol") == filtro]
+    for ev in eventos[-n:]:
+        imprimir(ev)
+    if not seguir:
+        return EXIT_OK
+
+    vistos = len(leer_todo())
+    try:
+        while True:
+            time.sleep(1)
+            todos = leer_todo()
+            for ev in todos[vistos:]:
+                if not filtro or ev.get("rol") == filtro:
+                    imprimir(ev)
+            vistos = len(todos)
+    except KeyboardInterrupt:
+        return EXIT_OK
 
 
 def main(argv):
@@ -420,10 +532,10 @@ def main(argv):
 
     if pos[:1] == ["estado"]:
         rol = pos[1] if len(pos) > 1 else None
-        if not rol:
-            print("uso: watcher.py estado <rol>")
-            return EXIT_ERROR
         return cli_estado(rol, datos, base_dir, buzon_base, estado_dir)
+
+    if pos[:1] == ["eventos"]:
+        return cli_eventos(args, estado_dir)
 
     if "--todos" in args:
         roles = list(datos.get("roles", {}))

@@ -6,6 +6,7 @@
   despierta al rol por mensaje nuevo o por intervalo, con lock por pid, anti-repetición por firma,
   timeout y `--seco`. El mensaje viaja por variables de entorno, no por argumentos.
 - CLI: valida `comando`, lo muestra en `ver` y lo escribe con `set --comando`. 24 tests.
+- Watcher: `eventos.jsonl` (despierta, fin, lock, bloqueado) y `turno/<rol>.json` (estado publicado del turno). `estado` sin rol muestra todos; `eventos --seguir` sigue en vivo. 22 tests.
 - Corregido en prueba real: logs del watcher con line buffering (stdout a archivo no se perdía al cerrar) y flags con valor (`--intervalo 1`) ya no se toman como nombres de rol. 16 tests del watcher.
 - **M1: el usuario como rol.** `tipo: humano` sin modelo ni entorno; trigger `usuario`.
 - Estado `esperando_usuario` para decisiones, accesos y aceptaciones humanas.

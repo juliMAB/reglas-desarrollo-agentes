@@ -76,6 +76,20 @@ class WatcherTests(unittest.TestCase):
                               capture_output=True, text=True, timeout=60)
         return proc.returncode, proc.stdout + proc.stderr
 
+    def eventos(self):
+        ruta = os.path.join(self.dir, ".watcher", "eventos.jsonl")
+        if not os.path.exists(ruta):
+            return []
+        with open(ruta, encoding="utf-8") as fh:
+            return [json.loads(l) for l in fh if l.strip()]
+
+    def turno(self, rol="qa"):
+        ruta = os.path.join(self.dir, ".watcher", "turno", f"{rol}.json")
+        if not os.path.exists(ruta):
+            return {}
+        with open(ruta, encoding="utf-8") as fh:
+            return json.load(fh)
+
     def leidas(self):
         if not os.path.exists(self.salida):
             return []
@@ -194,6 +208,56 @@ class WatcherTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, salida)
         self.assertNotIn("BLOQUEADO 1", salida)
         self.assertEqual(self.leidas(), ["h-flag"])
+
+    def test_eventos_registran_despierta_y_fin(self):
+        self.handoff(hid="h-ev")
+        self.correr("qa", "--once")
+        acciones = [e["accion"] for e in self.eventos()]
+        self.assertEqual(acciones, ["despierta", "fin"])
+        self.assertEqual(self.eventos()[0]["con"], "orquestador")
+        self.assertEqual(self.eventos()[0]["handoff_id"], "h-ev")
+        self.assertEqual(self.eventos()[1]["resultado"], 0)
+
+    def test_turno_termina_con_resultado(self):
+        self.handoff(hid="h-turno")
+        self.correr("qa", "--once")
+        datos = self.turno()
+        self.assertEqual(datos["estado"], "termino")
+        self.assertEqual(datos["resultado"], 0)
+        self.assertEqual(datos["con"], "orquestador")
+
+    def test_bloqueado_deja_evento(self):
+        self.escribir(config(self.salida, comando=None))
+        self.correr("qa", "--once")
+        self.assertEqual([e["accion"] for e in self.eventos()], ["bloqueado"])
+        self.assertEqual(self.turno()["estado"], "bloqueado")
+
+    def test_lock_deja_evento(self):
+        self.handoff(hid="h-lock-ev")
+        estado_dir = os.path.join(self.dir, ".watcher")
+        os.makedirs(estado_dir, exist_ok=True)
+        with open(os.path.join(estado_dir, "qa.lock"), "w", encoding="utf-8") as fh:
+            json.dump({"pid": os.getpid(), "ts": time.time()}, fh)
+        self.correr("qa", "--once")
+        self.assertEqual([e["accion"] for e in self.eventos()], ["lock"])
+        self.assertEqual(self.eventos()[0]["resultado"], "ocupado")
+
+    def test_eventos_filtra_por_rol(self):
+        self.handoff(hid="h-filtro")
+        self.correr("qa", "--once")
+        codigo, salida = self.correr("eventos", "--rol", "qa", "--n", "5")
+        self.assertEqual(codigo, 0, salida)
+        self.assertIn("despierta", salida)
+        codigo, salida = self.correr("eventos", "--rol", "constructor")
+        self.assertNotIn("despierta", salida)
+
+    def test_estado_sin_rol_lista_todos(self):
+        self.escribir(config(self.salida, comando=None))
+        self.correr("qa", "--once")
+        codigo, salida = self.correr("estado")
+        self.assertEqual(codigo, 0, salida)
+        self.assertIn("TURNO qa: bloqueado", salida)
+        self.assertIn("TURNO usuario: dormido", salida)
 
     def test_humano_no_se_despierta(self):
         codigo, salida = self.correr("usuario", "--once")
