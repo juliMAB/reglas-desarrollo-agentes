@@ -62,6 +62,19 @@ Por tag, no por rama. Si la skill cambia, este addon decide cuándo migrar.
 4. El trabajo se mueve por handoffs, no por conversación libre.
 5. Para ver qué hace cada rol: `vista.py --config reparto.json` y abrir `http://127.0.0.1:3040/`.
 
+## Servicio de la vista
+
+```
+cp herramientas/vista/vista.service.example ~/.config/systemd/user/vista-ciclo.service
+systemctl --user daemon-reload
+systemctl --user enable --now vista-ciclo.service
+sudo tailscale serve --bg --https=3040 http://127.0.0.1:3040
+```
+
+Queda en `https://<host>.<tailnet>.ts.net:3040/` (solo tailnet). El `Environment=REPARTO_CONFIG`
+de la unit apunta al `reparto.json` del ciclo; se cambia con `systemctl --user edit vista-ciclo`
+y `systemctl --user restart vista-ciclo`. No se bindea en `0.0.0.0`.
+
 Sin `reparto.md` completo, el trabajo no arranca. Un rol sin modelo asignado es un bloqueo, no una
 invitación a improvisar.
 
