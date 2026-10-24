@@ -7,7 +7,7 @@
 
 El mensaje vive como datos en un lugar compartido:
 
-- archivos (`buzon/<rol>/msg-*.md` o `.json`), o
+- archivos (`buzon/<rol>/msg-*.json`), o
 - un endpoint HTTP que devuelve JSON.
 
 Formato del mensaje: el de `handoff.md`. Nada más. No se depende de un lenguaje, un sistema
@@ -24,7 +24,7 @@ Cuatro formas, de más automática a más manual. Cualquiera sirve si está decl
 | Tipo | Cómo funciona | Requiere |
 |---|---|---|
 | **Loop del entorno** | el propio entorno corre el agente cada N minutos | una tarea programada |
-| **Watcher** | un proceso ve el mensaje y ejecuta al agente (`exec` de una CLI) | acceso a ejecutar el agente |
+| **Watcher** | un proceso ve el mensaje y ejecuta al agente (`exec` de una CLI) | `comando` por rol |
 | **Hook** | el entorno dispara un turno cuando llega un evento | soporte de hooks |
 | **Obligación en el turno** | la instrucción del rol dice "leé el buzón al inicio y al final" | nada, solo disciplina |
 
@@ -54,7 +54,35 @@ En los tres casos, si no hay automatización disponible, rige el piso universal:
 inicio y al final del turno. Eso convierte cualquier chat en un participante válido, más lento
 pero funcional.
 
-## 4. Ejemplos por entorno
+## 4. Watcher incluido
+
+`herramientas/watcher/watcher.py` implementa el mecanismo sin depender de la herramienta:
+
+```
+watcher.py --todos                 # loop: mira todos los buzones
+watcher.py qa --once               # una pasada, útil para cron o para probar
+watcher.py estado qa               # qué tiene pendiente el rol
+watcher.py qa --seco               # muestra qué haría, sin ejecutar ni recordar
+```
+
+Qué garantiza:
+
+- **Solo despierta por trabajo real.** Un handoff despierta si `para` es el rol, `de` es otro rol,
+  el `estado` pide acción (`pedido`, `entregado`, `reabierto`, `bloqueado`, `esperando_usuario`) y
+  `de` está en `desde`.
+- **No repite.** Guarda firma (mtime + tamaño) por archivo en `.watcher/<rol>.json`. El mismo
+  archivo sin cambios no despierta dos veces; si el rol lo modifica, sí.
+- **No superpone.** Un lock por rol (`.watcher/<rol>.lock`, con pid) impide que dos mensajes
+  despierten dos procesos a la vez. Un lock con pid muerto se limpia solo.
+- **Respeta el modo.** `usuario` nunca se despierta; `tiempo` corre cada `cada`; `agente` solo con
+  mensaje.
+- **Registra el resultado.** Cada despertar queda con código de salida. Un comando fallido no se
+  reintenta en loop hasta que el archivo cambie.
+
+El mensaje no se pasa por argumentos: el comando lo lee de `REPARTO_ARCHIVO` (y
+`REPARTO_HANDOFF_ID`). Por eso el mismo comando sirve para cualquier mensaje.
+
+## 5. Ejemplos por entorno
 
 Son ejemplos, no requisitos. La regla es la de arriba.
 
@@ -67,7 +95,7 @@ Son ejemplos, no requisitos. La regla es la de arriba.
 | Chat genérico | obligación en el turno, o el humano pegando el mensaje |
 | Consola | cron + `exec` del agente |
 
-## 5. Regla de oro
+## 6. Regla de oro
 
 Si un rol no puede ser despertado, el ciclo no se apoya en él. Se declara bloqueado, no se asume
 que "va a mirar".

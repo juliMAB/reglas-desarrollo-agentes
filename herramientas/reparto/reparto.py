@@ -10,6 +10,7 @@ Uso:
     reparto.py validar [--rutas] [--json]
     reparto.py ver [rol]
     reparto.py set <rol> --modelo M --entorno E --cwd C --trigger T [--desde a,b] [--cada 10m]
+                        [--comando "linea de comandos"]
     reparto.py acceso <rol> add|rm <ruta> [--modo rw|ro]
 
 Sin dependencias: solo stdlib.
@@ -37,7 +38,7 @@ ENTORNOS = {"opencode", "dsh", "openclaw", "claude-code", "otro"}
 TIPOS = {"agente", "humano"}
 MODOS_TRIGGER = {"agente", "tiempo", "usuario"}
 MODOS_ACCESO = {"rw", "ro"}
-CAMPOS_ROL = {"tipo", "modelo", "entorno", "cwd", "acceso", "trigger", "entrega"}
+CAMPOS_ROL = {"tipo", "modelo", "entorno", "cwd", "acceso", "trigger", "comando", "entrega"}
 
 
 def ruta_config(argv=None):
@@ -111,6 +112,23 @@ def validar(datos, revisar_rutas=False, base_dir="."):
                 errores.append((f"{base}.modelo", "falta modelo"))
             if rol.get("entorno") not in ENTORNOS:
                 errores.append((f"{base}.entorno", f"entorno inválido: {rol.get('entorno')!r}"))
+
+        # comando: lo que ejecuta el watcher para despertar al rol.
+        comando = rol.get("comando")
+        if tipo == "humano":
+            if comando not in (None, "", []):
+                errores.append((f"{base}.comando", "un rol humano no lleva comando"))
+        elif comando not in (None, "", []):
+            if isinstance(comando, str):
+                if not comando.strip():
+                    errores.append((f"{base}.comando", "el comando está vacío"))
+            elif isinstance(comando, list):
+                if not all(isinstance(x, str) and x.strip() for x in comando):
+                    errores.append((f"{base}.comando", "cada parte del comando debe ser texto no vacío"))
+            else:
+                errores.append((f"{base}.comando", "el comando debe ser texto o lista de textos"))
+        elif (rol.get("trigger") or {}).get("modo") in ("agente", "tiempo"):
+            avisos.append((f"{base}.comando", "sin comando: el watcher no puede despertar este rol"))
 
         cwd = rol.get("cwd")
         if not isinstance(cwd, str) or not cwd.strip():
@@ -210,6 +228,7 @@ def cmd_ver(args, ruta):
         print(f"  entorno  {rol.get('entorno')}")
         print(f"  cwd      {rol.get('cwd')}")
         print(f"  trigger  {detalle}")
+        print(f"  comando  {rol.get('comando') or '(ninguno)'}")
         print(f"  acceso   {accesos or '(ninguno)'}")
     return EXIT_OK
 
@@ -233,7 +252,7 @@ def cmd_set(args, ruta):
     rol = roles.setdefault(rol_nombre, {
         "modelo": "", "entorno": "opencode", "cwd": "",
         "acceso": [], "trigger": {"modo": "usuario", "desde": [], "cada": None},
-        "entrega": [],
+        "comando": None, "entrega": [],
     })
 
     modelo = _valor(args, "--modelo")
@@ -243,6 +262,7 @@ def cmd_set(args, ruta):
     desde = _valor(args, "--desde")
     cada = _valor(args, "--cada")
     tipo = _valor(args, "--tipo")
+    comando = _valor(args, "--comando")
 
     if tipo:
         rol["tipo"] = tipo
@@ -264,6 +284,10 @@ def cmd_set(args, ruta):
         rol.setdefault("trigger", {})["desde"] = [x.strip() for x in desde.split(",") if x.strip()]
     if cada is not None:
         rol.setdefault("trigger", {})["cada"] = cada or None
+    if comando is not None:
+        rol["comando"] = comando or None
+    if rol.get("tipo") == "humano":
+        rol["comando"] = None
 
     errores, avisos = validar(datos, revisar_rutas="--rutas" in args,
                               base_dir=os.path.dirname(os.path.abspath(ruta)))

@@ -2,11 +2,15 @@
 
 ## 2.0.0-dev — 2026-10-24
 
+- **M2: watcher.** `comando` por rol (texto o lista) y `herramientas/watcher/watcher.py`:
+  despierta al rol por mensaje nuevo o por intervalo, con lock por pid, anti-repetición por firma,
+  timeout y `--seco`. El mensaje viaja por variables de entorno, no por argumentos.
+- CLI: valida `comando`, lo muestra en `ver` y lo escribe con `set --comando`. 24 tests.
 - **M1: el usuario como rol.** `tipo: humano` sin modelo ni entorno; trigger `usuario`.
 - Estado `esperando_usuario` para decisiones, accesos y aceptaciones humanas.
 - Regla: al usuario se le pide solo lo que el sistema no puede resolver.
 - CLI: `ver` distingue humanos; `set --tipo humano` limpia modelo/entorno; 16 tests.
-- Nuevo `ROADMAP.md` con los hitos de v2.
+- Nuevo `ROADMAP.md` con los hitos de v2. 15 tests del watcher.
 
 ## 1.0.0 — 2026-10-24
 

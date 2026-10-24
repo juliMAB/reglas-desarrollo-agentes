@@ -6,50 +6,100 @@
       "entorno": "opencode",
       "cwd": "~/proyectos/android/frase-del-dia-app",
       "acceso": [
-        { "ruta": "~/proyectos/android/frase-del-dia-app", "modo": "rw" },
-        { "ruta": "~/proyectos/android/frase-del-dia-contratos", "modo": "ro" },
-        { "ruta": "buzon/constructor", "modo": "rw" },
-        { "ruta": "buzon/qa", "modo": "rw" }
+        {
+          "ruta": "~/proyectos/android/frase-del-dia-app",
+          "modo": "rw"
+        },
+        {
+          "ruta": "~/proyectos/android/frase-del-dia-contratos",
+          "modo": "ro"
+        },
+        {
+          "ruta": "buzon/constructor",
+          "modo": "rw"
+        },
+        {
+          "ruta": "buzon/qa",
+          "modo": "rw"
+        }
       ],
       "trigger": {
         "modo": "agente",
-        "desde": ["orquestador"],
+        "desde": [
+          "orquestador"
+        ],
         "cada": null
       },
-      "entrega": ["repo", "commit", "evidencia/<slug>.md"]
+      "entrega": [
+        "repo",
+        "commit",
+        "evidencia/<slug>.md"
+      ],
+      "comando": "bash -lc 'source ~/.bash_aliases && occoder \"Leé el handoff $REPARTO_ARCHIVO de tu buzón y trabajá según reparto.md\"'"
     },
     "qa": {
       "modelo": "openrouter/stealth/space-bunny-alpha",
       "entorno": "opencode",
       "cwd": "~/proyectos/android",
       "acceso": [
-        { "ruta": "~/proyectos/android/frase-del-dia-app/build", "modo": "ro" },
-        { "ruta": "~/proyectos/android/frase-del-dia-app/evidencia", "modo": "rw" },
-        { "ruta": "~/proyectos/android/frase-del-dia-app/src", "modo": "ro" },
-        { "ruta": "buzon/qa", "modo": "rw" },
-        { "ruta": "herramientas/reglas-desarrollo", "modo": "ro" }
+        {
+          "ruta": "~/proyectos/android/frase-del-dia-app/build",
+          "modo": "ro"
+        },
+        {
+          "ruta": "~/proyectos/android/frase-del-dia-app/evidencia",
+          "modo": "rw"
+        },
+        {
+          "ruta": "~/proyectos/android/frase-del-dia-app/src",
+          "modo": "ro"
+        },
+        {
+          "ruta": "buzon/qa",
+          "modo": "rw"
+        },
+        {
+          "ruta": "herramientas/reglas-desarrollo",
+          "modo": "ro"
+        }
       ],
       "trigger": {
         "modo": "agente",
-        "desde": ["constructor", "orquestador"],
+        "desde": [
+          "constructor",
+          "orquestador"
+        ],
         "cada": null
       },
-      "entrega": ["evidencia/QA-<slug>.md"]
+      "entrega": [
+        "evidencia/QA-<slug>.md"
+      ],
+      "comando": "bash -lc 'source ~/.bash_aliases && occoder \"Leé el handoff $REPARTO_ARCHIVO de tu buzón y verificá según reparto.md\"'"
     },
     "orquestador": {
       "modelo": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
       "entorno": "opencode",
       "cwd": "~/proyectos/android",
       "acceso": [
-        { "ruta": "~/proyectos/android", "modo": "rw" },
-        { "ruta": "buzon", "modo": "rw" }
+        {
+          "ruta": "~/proyectos/android",
+          "modo": "rw"
+        },
+        {
+          "ruta": "buzon",
+          "modo": "rw"
+        }
       ],
       "trigger": {
         "modo": "usuario",
         "desde": [],
         "cada": null
       },
-      "entrega": ["reparto.json", "estado del ciclo"]
+      "entrega": [
+        "reparto.json",
+        "estado del ciclo"
+      ],
+      "comando": null
     },
     "usuario": {
       "tipo": "humano",
@@ -57,14 +107,19 @@
       "entorno": null,
       "cwd": ".",
       "acceso": [
-        { "ruta": "buzon/usuario", "modo": "rw" }
+        {
+          "ruta": "buzon/usuario",
+          "modo": "rw"
+        }
       ],
       "trigger": {
         "modo": "usuario",
         "desde": [],
         "cada": null
       },
-      "entrega": []
+      "entrega": [],
+      "comando": null
     }
-  }
+  },
+  "buzon": "buzon"
 }

@@ -13,6 +13,7 @@
 | `cwd` | carpeta donde arranca la sesión del rol |
 | `acceso` | lista de rutas con modo `rw` o `ro` |
 | `trigger` | cómo se entera de que tiene trabajo |
+| `comando` | qué ejecuta el watcher para despertarlo (solo agentes) |
 | `entrega` | qué artefactos deja al cerrar |
 
 ## Rol humano
@@ -50,6 +51,24 @@ Tres modos, tal como se configuran:
 
 `desde` vacío equivale a "ninguno". Un rol con `modo: agente` y `desde: []` no se despierta nunca:
 es un bloqueo declarado, no un olvido.
+
+## Comando
+
+El `comando` es lo que ejecuta el watcher cuando hay trabajo. Es del rol, no del mensaje: el
+mensaje llega por variables de entorno, no pegando argumentos.
+
+```json
+"comando": "bash -lc 'source ~/.bash_aliases && occoder \"Leé el handoff $REPARTO_ARCHIVO\"'"
+```
+
+- Puede ser texto (se ejecuta con `/bin/sh -c`, o `cmd /c` en Windows) o una lista (`["opencode", "run", "-"]`).
+- Recibe: `REPARTO_ROL`, `REPARTO_BUZON`, `REPARTO_ARCHIVO`, `REPARTO_HANDOFF_ID`, `REPARTO_CONFIG`.
+- Arranca en el `cwd` del rol.
+- Un rol humano no lleva comando.
+- Sin comando, un rol `agente` o `tiempo` queda **bloqueado para el watcher**: el validador lo avisa,
+  no lo declara inválido, porque el piso universal (leer el buzón en el turno) sigue existiendo.
+- El comando no lleva el mensaje adentro. Si lo lleva, el mismo rol necesita un comando distinto por
+  mensaje y el watcher deja de ser genérico.
 
 ## Acceso
 
@@ -91,6 +110,7 @@ es un bloqueo declarado, no un olvido.
 reparto.py validar [--rutas] [--json]        # 0 válido · 1 inválido · 2 no se pudo leer
 reparto.py ver [rol]
 reparto.py set <rol> --modelo M --entorno E --cwd C --trigger T [--desde a,b] [--cada 10m]
+                    [--comando "linea de comandos"]
 reparto.py acceso <rol> add|rm <ruta> [--modo rw|ro]
 ```
 
@@ -109,6 +129,7 @@ reparto.py acceso <rol> add|rm <ruta> [--modo rw|ro]
       "cwd": "~/proyectos/app",
       "acceso": [{ "ruta": "~/proyectos/app", "modo": "rw" }],
       "trigger": { "modo": "agente", "desde": ["orquestador"], "cada": null },
+      "comando": "bash -lc 'source ~/.bash_aliases && occoder \"Leé $REPARTO_ARCHIVO\"'",
       "entrega": ["repo", "commit"]
     }
   }

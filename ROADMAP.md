@@ -11,13 +11,17 @@
 - Regla: se le pide solo lo que el sistema no puede resolver (decisión, acceso, aceptación, acción física).
 - CLI: `ver` distingue humanos; `set --tipo humano` limpia modelo y entorno; 16 tests.
 
-## M2 — Watcher: el trigger real
+## M2 — Watcher: el trigger real ✅
 
-- Proceso que mira `buzon/<rol>/` y despierta al rol que corresponde.
-- Configurable por rol: comando a ejecutar, intervalo, y estado `busy` para no despertar dos veces.
-- Debe respetar `trigger.modo`: `agente` (al llegar mensaje), `tiempo` (cada intervalo), `usuario` (nunca).
-- Criterio de aceptación: un mensaje en `buzon/qa/` provoca una ejecución del QA sin intervención humana,
-  y el lock impide que dos mensajes despierten dos procesos a la vez.
+- `comando` por rol: texto (`/bin/sh -c`, `cmd /c`) o lista de argumentos. Recibe el mensaje por
+  variables de entorno, no por argumentos.
+- `herramientas/watcher/watcher.py`: mira `buzon/<rol>/`, ejecuta el comando del rol que
+  corresponde, en su `cwd`, con timeout.
+- Respeta `trigger.modo`: `agente` (mensaje nuevo), `tiempo` (cada `cada`), `usuario` (nunca).
+- Lock por rol con pid: dos mensajes no despiertan dos procesos. Lock con pid muerto se limpia.
+- Anti-repetición por firma (mtime + tamaño); `--seco` para ensayar; `estado <rol>` para ver pendientes.
+- Criterio de aceptación cumplido en tests: mensaje en `buzon/qa/` despierta al QA sin intervención
+  humana, y con el lock tomado no hay segunda ejecución. 15 tests del watcher, 24 del CLI.
 
 ## M3 — Validador de handoffs
 

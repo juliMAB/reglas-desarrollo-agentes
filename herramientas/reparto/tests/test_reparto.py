@@ -203,6 +203,81 @@ class RepartoTests(unittest.TestCase):
         codigo, salida = correr(self.cfg, "validar", "--rutas")
         self.assertEqual(codigo, 0, salida)
 
+    def test_comando_texto_valido(self):
+        datos = self.leer()
+        datos["roles"]["constructor"]["comando"] = "bash -lc 'eco hola'"
+        with open(self.cfg, "w", encoding="utf-8") as fh:
+            json.dump(datos, fh)
+        codigo, salida = correr(self.cfg, "validar")
+        self.assertEqual(codigo, 0, salida)
+
+    def test_comando_lista_valida(self):
+        datos = self.leer()
+        datos["roles"]["constructor"]["comando"] = ["opencode", "run", "-"]
+        with open(self.cfg, "w", encoding="utf-8") as fh:
+            json.dump(datos, fh)
+        codigo, salida = correr(self.cfg, "validar")
+        self.assertEqual(codigo, 0, salida)
+
+    def test_comando_vacio_es_invalido(self):
+        datos = self.leer()
+        datos["roles"]["constructor"]["comando"] = "   "
+        with open(self.cfg, "w", encoding="utf-8") as fh:
+            json.dump(datos, fh)
+        codigo, salida = correr(self.cfg, "validar")
+        self.assertEqual(codigo, 1, salida)
+        self.assertIn("comando", salida)
+
+    def test_comando_de_tipo_raro_es_invalido(self):
+        datos = self.leer()
+        datos["roles"]["constructor"]["comando"] = 42
+        with open(self.cfg, "w", encoding="utf-8") as fh:
+            json.dump(datos, fh)
+        codigo, salida = correr(self.cfg, "validar")
+        self.assertEqual(codigo, 1, salida)
+
+    def test_agente_sin_comando_es_aviso(self):
+        codigo, salida = correr(self.cfg, "validar")
+        self.assertEqual(codigo, 0, salida)
+        self.assertIn("sin comando", salida)
+
+    def test_humano_con_comando_es_invalido(self):
+        datos = self.leer()
+        datos["roles"]["usuario"] = {
+            "tipo": "humano",
+            "modelo": None,
+            "entorno": None,
+            "cwd": ".",
+            "acceso": [],
+            "trigger": {"modo": "usuario", "desde": [], "cada": None},
+            "comando": "despertar",
+            "entrega": [],
+        }
+        with open(self.cfg, "w", encoding="utf-8") as fh:
+            json.dump(datos, fh)
+        codigo, salida = correr(self.cfg, "validar")
+        self.assertEqual(codigo, 1, salida)
+        self.assertIn("humano", salida)
+
+    def test_set_comando(self):
+        codigo, salida = correr(
+            self.cfg, "set", "constructor",
+            "--modelo", "x/modelo", "--entorno", "opencode", "--cwd", "/tmp",
+            "--trigger", "agente", "--desde", "orquestador",
+            "--comando", "opencode run -",
+        )
+        self.assertEqual(codigo, 0, salida)
+        self.assertEqual(self.leer()["roles"]["constructor"]["comando"], "opencode run -")
+
+    def test_set_humano_limpia_comando(self):
+        datos = self.leer()
+        datos["roles"]["constructor"]["comando"] = "x"
+        with open(self.cfg, "w", encoding="utf-8") as fh:
+            json.dump(datos, fh)
+        codigo, salida = correr(self.cfg, "set", "constructor", "--tipo", "humano", "--cwd", ".")
+        self.assertEqual(codigo, 0, salida)
+        self.assertIsNone(self.leer()["roles"]["constructor"]["comando"])
+
 
 if __name__ == "__main__":
     unittest.main()
