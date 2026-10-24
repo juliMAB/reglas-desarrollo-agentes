@@ -34,9 +34,10 @@ EXIT_INVALID = 1
 EXIT_ERROR = 2
 
 ENTORNOS = {"opencode", "dsh", "openclaw", "claude-code", "otro"}
+TIPOS = {"agente", "humano"}
 MODOS_TRIGGER = {"agente", "tiempo", "usuario"}
 MODOS_ACCESO = {"rw", "ro"}
-CAMPOS_ROL = {"modelo", "entorno", "cwd", "acceso", "trigger", "entrega"}
+CAMPOS_ROL = {"tipo", "modelo", "entorno", "cwd", "acceso", "trigger", "entrega"}
 
 
 def ruta_config(argv=None):
@@ -95,12 +96,21 @@ def validar(datos, revisar_rutas=False, base_dir="."):
         if desconocidos:
             errores.append((base, f"campos desconocidos: {', '.join(sorted(desconocidos))}"))
 
-        if not isinstance(rol.get("modelo"), str) or not rol["modelo"].strip():
-            errores.append((f"{base}.modelo", "falta modelo"))
-
-        entorno = rol.get("entorno")
-        if entorno not in ENTORNOS:
-            errores.append((f"{base}.entorno", f"entorno inválido: {entorno!r}"))
+        tipo = rol.get("tipo", "agente")
+        if tipo not in TIPOS:
+            errores.append((f"{base}.tipo", f"tipo inválido: {tipo!r}"))
+        elif tipo == "humano":
+            if rol.get("modelo") not in (None, ""):
+                errores.append((f"{base}.modelo", "un rol humano no lleva modelo"))
+            if rol.get("entorno") not in (None, ""):
+                errores.append((f"{base}.entorno", "un rol humano no lleva entorno"))
+            if (rol.get("trigger") or {}).get("modo") != "usuario":
+                errores.append((f"{base}.trigger", "un rol humano solo puede tener modo usuario"))
+        else:
+            if not isinstance(rol.get("modelo"), str) or not rol["modelo"].strip():
+                errores.append((f"{base}.modelo", "falta modelo"))
+            if rol.get("entorno") not in ENTORNOS:
+                errores.append((f"{base}.entorno", f"entorno inválido: {rol.get('entorno')!r}"))
 
         cwd = rol.get("cwd")
         if not isinstance(cwd, str) or not cwd.strip():
@@ -190,7 +200,12 @@ def cmd_ver(args, ruta):
         elif detalle == "tiempo":
             detalle += f" cada {trig.get('cada')}"
         accesos = ", ".join(f"{a.get('ruta')}:{a.get('modo')}" for a in rol.get("acceso", []))
-        print(f"{nombre}")
+        print(f"{nombre} ({rol.get('tipo', 'agente')})")
+        if rol.get("tipo") == "humano":
+            print("  humano: sin modelo, sin entorno")
+            print(f"  cwd      {rol.get('cwd')}")
+            print(f"  trigger  usuario")
+            continue
         print(f"  modelo   {rol.get('modelo')}")
         print(f"  entorno  {rol.get('entorno')}")
         print(f"  cwd      {rol.get('cwd')}")
@@ -227,11 +242,20 @@ def cmd_set(args, ruta):
     trigger = _valor(args, "--trigger")
     desde = _valor(args, "--desde")
     cada = _valor(args, "--cada")
+    tipo = _valor(args, "--tipo")
 
+    if tipo:
+        rol["tipo"] = tipo
     if modelo:
         rol["modelo"] = modelo
     if entorno:
         rol["entorno"] = entorno
+    if rol.get("tipo") == "humano":
+        rol["modelo"] = None
+        rol["entorno"] = None
+        rol.setdefault("trigger", {})["modo"] = "usuario"
+        rol["trigger"]["desde"] = []
+        rol["trigger"]["cada"] = None
     if cwd:
         rol["cwd"] = cwd
     if trigger:

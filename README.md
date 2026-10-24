@@ -5,6 +5,9 @@ Addon de la skill [reglas-desarrollo](https://github.com/juliMAB/reglas-desarrol
 Define **quién hace cada parte y cómo se pasa el trabajo** entre agentes. No repite las reglas de
 construcción: las usa.
 
+El usuario puede ser parte del ciclo como un rol más (`tipo: humano`): recibe handoffs, aprueba
+puertas, responde bloqueos y veta. No se le pide nada que un rol pueda hacer.
+
 ## Qué es y qué no es
 
 **Es:**

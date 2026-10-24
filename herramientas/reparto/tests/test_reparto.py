@@ -134,6 +134,63 @@ class RepartoTests(unittest.TestCase):
         codigo, salida = correr(os.path.join(self.tmp.name, "nada.json"), "validar")
         self.assertEqual(codigo, 2, salida)
 
+    def test_rol_humano_valido(self):
+        datos = self.leer()
+        datos["roles"]["usuario"] = {
+            "tipo": "humano",
+            "modelo": None,
+            "entorno": None,
+            "cwd": ".",
+            "acceso": [{"ruta": ".", "modo": "rw"}],
+            "trigger": {"modo": "usuario", "desde": [], "cada": None},
+            "entrega": [],
+        }
+        with open(self.cfg, "w", encoding="utf-8") as fh:
+            json.dump(datos, fh)
+        codigo, salida = correr(self.cfg, "validar")
+        self.assertEqual(codigo, 0, salida)
+
+    def test_rol_humano_con_modelo_es_invalido(self):
+        datos = self.leer()
+        datos["roles"]["usuario"] = {
+            "tipo": "humano",
+            "modelo": "x/modelo",
+            "entorno": "opencode",
+            "cwd": ".",
+            "acceso": [],
+            "trigger": {"modo": "usuario", "desde": [], "cada": None},
+            "entrega": [],
+        }
+        with open(self.cfg, "w", encoding="utf-8") as fh:
+            json.dump(datos, fh)
+        codigo, salida = correr(self.cfg, "validar")
+        self.assertEqual(codigo, 1, salida)
+        self.assertIn("humano", salida)
+
+    def test_rol_humano_con_trigger_agente_es_invalido(self):
+        datos = self.leer()
+        datos["roles"]["usuario"] = {
+            "tipo": "humano",
+            "modelo": None,
+            "entorno": None,
+            "cwd": ".",
+            "acceso": [],
+            "trigger": {"modo": "agente", "desde": ["constructor"], "cada": None},
+            "entrega": [],
+        }
+        with open(self.cfg, "w", encoding="utf-8") as fh:
+            json.dump(datos, fh)
+        codigo, salida = correr(self.cfg, "validar")
+        self.assertEqual(codigo, 1, salida)
+
+    def test_set_tipo_humano_limpia_modelo_y_entorno(self):
+        codigo, salida = correr(self.cfg, "set", "usuario", "--tipo", "humano", "--cwd", ".")
+        self.assertEqual(codigo, 0, salida)
+        rol = self.leer()["roles"]["usuario"]
+        self.assertIsNone(rol["modelo"])
+        self.assertIsNone(rol["entorno"])
+        self.assertEqual(rol["trigger"]["modo"], "usuario")
+
     def test_rutas_relativas_se_resuelven_contra_el_config(self):
         # La configuración vive en tmp/, con rutas relativas a ese directorio.
         os.makedirs(os.path.join(self.tmp.name, "proyecto"), exist_ok=True)

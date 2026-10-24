@@ -7,12 +7,36 @@
 
 | Campo | Qué define |
 |---|---|
-| `modelo` | proveedor/modelo exacto que ejecuta el rol |
-| `entorno` | dónde corre: opencode, dsh, openclaw, claude-code, otro |
+| `tipo` | `agente` (por defecto) o `humano` |
+| `modelo` | proveedor/modelo exacto que ejecuta el rol (solo agentes) |
+| `entorno` | dónde corre: opencode, dsh, openclaw, claude-code, otro (solo agentes) |
 | `cwd` | carpeta donde arranca la sesión del rol |
 | `acceso` | lista de rutas con modo `rw` o `ro` |
 | `trigger` | cómo se entera de que tiene trabajo |
 | `entrega` | qué artefactos deja al cerrar |
+
+## Rol humano
+
+El usuario puede ser parte del ciclo, no un espectador:
+
+```json
+"usuario": {
+  "tipo": "humano",
+  "modelo": null,
+  "entorno": null,
+  "cwd": ".",
+  "acceso": [{ "ruta": "buzon/usuario", "modo": "rw" }],
+  "trigger": { "modo": "usuario", "desde": [], "cada": null },
+  "entrega": []
+}
+```
+
+- Un rol humano **no lleva modelo ni entorno**. El CLI lo rechaza si los tiene.
+- Su trigger es siempre `usuario`: no se despierta por mensaje ni por tiempo.
+- Recibe handoffs en su buzón y responde como cualquier rol, con `de: "usuario"` y `reply_to`.
+- Se le pide solo lo que el sistema no puede resolver: una decisión, un acceso, una aceptación o
+  una acción física. Nunca una tarea que un rol podría hacer.
+- Cuando el ciclo lo espera, el handoff queda en `esperando_usuario`.
 
 ## Trigger
 

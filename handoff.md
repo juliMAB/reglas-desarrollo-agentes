@@ -40,6 +40,7 @@
 | `aprobado` | QA verificó y aceptó | qa |
 | `reabierto` | QA encontró un fallo | qa |
 | `bloqueado` | falta un dato, acceso o modelo | cualquier rol |
+| `esperando_usuario` | el ciclo necesita una decisión, un acceso o una aceptación humana | cualquier rol |
 
 Un `reabierto` siempre incluye: qué falló, cómo se reproduce, y qué evidencia lo muestra.
 
@@ -59,6 +60,11 @@ Un `reabierto` siempre incluye: qué falló, cómo se reproduce, y qué evidenci
 8. **Si el proyecto no es un repo git**, `repo` va en `null`, `commit` en `null` y se agrega
    `carpeta` con la ruta. Una ruta local no se presenta como repo: el QA no puede fijar qué versión
    revisó si no hay commit.
+9. **Al usuario se le pide solo lo que el sistema no puede resolver**: una decisión, un acceso, una
+   aceptación o una acción física. Nunca una tarea que un rol podría hacer.
+10. **El usuario responde como cualquier rol**: un handoff con `de: "usuario"`, `reply_to` del
+   pedido y estado `entregado` o `reabierto`. Su respuesta no necesita modelo ni evidencia técnica,
+   pero sí decir qué decidió.
 
 ## 4. Flujo mínimo
 

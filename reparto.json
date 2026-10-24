@@ -50,6 +50,21 @@
         "cada": null
       },
       "entrega": ["reparto.json", "estado del ciclo"]
+    },
+    "usuario": {
+      "tipo": "humano",
+      "modelo": null,
+      "entorno": null,
+      "cwd": ".",
+      "acceso": [
+        { "ruta": "buzon/usuario", "modo": "rw" }
+      ],
+      "trigger": {
+        "modo": "usuario",
+        "desde": [],
+        "cada": null
+      },
+      "entrega": []
     }
   }
 }

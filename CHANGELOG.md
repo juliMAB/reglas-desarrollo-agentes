@@ -1,5 +1,19 @@
 # CHANGELOG — addon de agentes
 
+## 2.0.0-dev — 2026-10-24
+
+- **M1: el usuario como rol.** `tipo: humano` sin modelo ni entorno; trigger `usuario`.
+- Estado `esperando_usuario` para decisiones, accesos y aceptaciones humanas.
+- Regla: al usuario se le pide solo lo que el sistema no puede resolver.
+- CLI: `ver` distingue humanos; `set --tipo humano` limpia modelo/entorno; 16 tests.
+- Nuevo `ROADMAP.md` con los hitos de v2.
+
+## 1.0.0 — 2026-10-24
+
+- Entregar = copiar el handoff al buzón del destinatario (`handoff.md` §6).
+- Accesos por defecto: `buzon/<rol>` rw, buzón del destinatario para quien entrega, QA `ro` sobre herramientas.
+- Ciclo completo validado con dos modelos distintos y veredicto de QA con evidencia.
+
 ## 0.6 — 2026-10-22
 
 - CLI: las rutas relativas se resuelven contra el directorio del `reparto.json`, no contra el cwd.
