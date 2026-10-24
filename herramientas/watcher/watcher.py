@@ -33,7 +33,7 @@ import time
 
 for flujo in (sys.stdout, sys.stderr):
     try:
-        flujo.reconfigure(encoding="utf-8", errors="replace")
+        flujo.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
     except Exception:
         pass
 
@@ -416,8 +416,10 @@ def main(argv):
     seco = "--seco" in args
     once = "--once" in args or seco
 
-    if args[:1] == ["estado"]:
-        rol = next((a for a in args[1:] if not a.startswith("--")), None)
+    pos = posicionales(args)
+
+    if pos[:1] == ["estado"]:
+        rol = pos[1] if len(pos) > 1 else None
         if not rol:
             print("uso: watcher.py estado <rol>")
             return EXIT_ERROR
@@ -426,7 +428,7 @@ def main(argv):
     if "--todos" in args:
         roles = list(datos.get("roles", {}))
     else:
-        roles = [a for a in args if not a.startswith("--")]
+        roles = pos
         if not roles:
             print(__doc__.strip())
             return EXIT_ERROR
@@ -443,6 +445,24 @@ def main(argv):
                           timeout, seco, intervalo, once)
     except KeyboardInterrupt:
         return EXIT_OK
+
+
+FLAGS_CON_VALOR = {"--config", "--intervalo", "--timeout", "--buzon", "--estado-dir"}
+
+
+def posicionales(args):
+    """Argumentos que no son flags ni valores de flags."""
+    salida, i = [], 0
+    while i < len(args):
+        if args[i] in FLAGS_CON_VALOR:
+            i += 2
+            continue
+        if args[i].startswith("--"):
+            i += 1
+            continue
+        salida.append(args[i])
+        i += 1
+    return salida
 
 
 def _valor(args, flag):

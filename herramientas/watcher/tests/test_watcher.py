@@ -184,6 +184,17 @@ class WatcherTests(unittest.TestCase):
         self.assertIn("PENDIENTE msg-001.json", salida)
         self.assertIn("h-estado", salida)
 
+    def test_flags_con_valor_no_se_toman_como_roles(self):
+        self.handoff(hid="h-flag")
+        proc = subprocess.run(
+            [sys.executable, WATCHER, "qa", "--once", "--intervalo", "1",
+             "--timeout", "5", "--config", self.cfg],
+            capture_output=True, text=True, timeout=60)
+        salida = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 0, salida)
+        self.assertNotIn("BLOQUEADO 1", salida)
+        self.assertEqual(self.leidas(), ["h-flag"])
+
     def test_humano_no_se_despierta(self):
         codigo, salida = self.correr("usuario", "--once")
         self.assertEqual(codigo, 0, salida)
