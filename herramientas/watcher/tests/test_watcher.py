@@ -259,6 +259,21 @@ class WatcherTests(unittest.TestCase):
         self.assertIn("TURNO qa: bloqueado", salida)
         self.assertIn("TURNO usuario: dormido", salida)
 
+    def test_pasa_modelo_y_entorno_al_comando(self):
+        destino = os.path.join(self.dir, "env.txt")
+        codigo = ("import os;open(%r,'w',encoding='utf-8')"
+                  ".write(os.environ.get('REPARTO_MODELO','')+'|'+os.environ.get('REPARTO_ENTORNO',''))"
+                  % destino)
+        comando = "%s -c %s" % (shlex.quote(sys.executable), shlex.quote(codigo))
+        datos = config(self.salida, comando=comando)
+        datos["roles"]["qa"]["modelo"] = "proveedor/modelo-x"
+        datos["roles"]["qa"]["entorno"] = "dsh"
+        self.escribir(datos)
+        self.handoff(hid="h-env")
+        self.correr("qa", "--once")
+        with open(destino, encoding="utf-8") as fh:
+            self.assertEqual(fh.read(), "proveedor/modelo-x|dsh")
+
     def test_humano_no_se_despierta(self):
         codigo, salida = self.correr("usuario", "--once")
         self.assertEqual(codigo, 0, salida)

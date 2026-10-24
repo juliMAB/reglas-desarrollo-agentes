@@ -2,7 +2,7 @@
   "version": 1,
   "roles": {
     "constructor": {
-      "modelo": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+      "modelo": "opencode/nemotron-3-ultra-free",
       "entorno": "opencode",
       "cwd": "~/proyectos/android/frase-del-dia-app",
       "acceso": [
@@ -35,10 +35,10 @@
         "commit",
         "evidencia/<slug>.md"
       ],
-      "comando": "bash -lc 'source ~/.bash_aliases && occoder \"Leé el handoff $REPARTO_ARCHIVO de tu buzón y trabajá según reparto.md\"'"
+      "comando": "bash -lc 'source ~/.bash_aliases && opencode run --model \"$REPARTO_MODELO\" \"Leé el handoff $REPARTO_ARCHIVO y trabajá según reparto.md\"'"
     },
     "qa": {
-      "modelo": "openrouter/stealth/space-bunny-alpha",
+      "modelo": "opencode/glm-5.3-flash-free",
       "entorno": "opencode",
       "cwd": "~/proyectos/android",
       "acceso": [
@@ -74,7 +74,7 @@
       "entrega": [
         "evidencia/QA-<slug>.md"
       ],
-      "comando": "bash -lc 'source ~/.bash_aliases && occoder \"Leé el handoff $REPARTO_ARCHIVO de tu buzón y verificá según reparto.md\"'"
+      "comando": "bash -lc 'source ~/.bash_aliases && opencode run --model \"$REPARTO_MODELO\" \"Leé el handoff $REPARTO_ARCHIVO y verificá según reparto.md\"'"
     },
     "orquestador": {
       "modelo": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",

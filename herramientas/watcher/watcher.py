@@ -18,7 +18,8 @@ Uso:
 
 Sin --once corre en loop. --seco muestra lo que haria sin ejecutar ni recordar.
 El comando recibe:
-    REPARTO_ROL, REPARTO_BUZON, REPARTO_ARCHIVO, REPARTO_HANDOFF_ID, REPARTO_CONFIG
+    REPARTO_ROL, REPARTO_MODELO, REPARTO_ENTORNO, REPARTO_BUZON,
+    REPARTO_ARCHIVO, REPARTO_HANDOFF_ID, REPARTO_CONFIG
 
 Sin dependencias: solo stdlib.
 """
@@ -280,7 +281,7 @@ def ejecutar(rol, comando, cwd, entorno, timeout, seco, log_path=None):
         return 127
 
 
-def entorno_de(rol, cfg_path, rol_dir, archivo, handoff_id):
+def entorno_de(rol, cfg_path, rol_dir, archivo, handoff_id, modelo=None, entorno=None):
     env = os.environ.copy()
     env.update({
         "REPARTO_ROL": rol,
@@ -288,6 +289,8 @@ def entorno_de(rol, cfg_path, rol_dir, archivo, handoff_id):
         "REPARTO_ARCHIVO": archivo or "",
         "REPARTO_HANDOFF_ID": handoff_id or "",
         "REPARTO_CONFIG": os.path.abspath(cfg_path),
+        "REPARTO_MODELO": str(modelo or ""),
+        "REPARTO_ENTORNO": str(entorno or ""),
     })
     return env
 
@@ -331,6 +334,8 @@ def preparar(rol_nombre, rol, base_dir, cfg_path, buzon_base, estado_dir):
         "modo": modo,
         "desde": list(trig.get("desde") or []),
         "cada": cada or 0,
+        "modelo": rol.get("modelo"),
+        "entorno": rol.get("entorno"),
         "estado": estado,
         "estado_path": estado_path,
         "lock_path": os.path.join(estado_dir, f"{rol_nombre}.lock"),
@@ -370,7 +375,8 @@ def pasada_rol(ctx, cfg_path, timeout, seco):
                 marcar_turno(ctx["turno_path"], rol, "trabajando", desde=inicio, pid=os.getpid())
             t0 = time.time()
             codigo = ejecutar(rol, ctx["comando"], ctx["cwd"],
-                              entorno_de(rol, cfg_path, ctx["rol_dir"], "", ""),
+                              entorno_de(rol, cfg_path, ctx["rol_dir"], "", "",
+                                         ctx["modelo"], ctx["entorno"]),
                               timeout, seco, ctx["log_path"])
             if not seco:
                 anotar(ctx["eventos_path"], rol, "fin", resultado=codigo,
@@ -396,7 +402,8 @@ def pasada_rol(ctx, cfg_path, timeout, seco):
                                  pid=os.getpid())
                 t0 = time.time()
                 codigo = ejecutar(rol, ctx["comando"], ctx["cwd"],
-                                  entorno_de(rol, cfg_path, ctx["rol_dir"], ruta, hid),
+                                  entorno_de(rol, cfg_path, ctx["rol_dir"], ruta, hid,
+                                             ctx["modelo"], ctx["entorno"]),
                                   timeout, seco, ctx["log_path"])
                 if not seco:
                     anotar(ctx["eventos_path"], rol, "fin", con=con, handoff_id=hid,
