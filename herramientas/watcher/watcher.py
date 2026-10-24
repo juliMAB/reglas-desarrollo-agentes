@@ -241,17 +241,38 @@ def argv_comando(comando):
     return ["/bin/sh", "-c", comando]
 
 
-def ejecutar(rol, comando, cwd, entorno, timeout, seco):
+def _guardar_salida(ruta, rol, texto):
+    if not ruta:
+        return
+    os.makedirs(os.path.dirname(ruta) or ".", exist_ok=True)
+    with open(ruta, "a", encoding="utf-8") as fh:
+        fh.write(f"\n=== {ahora()} {rol} ===\n")
+        fh.write(texto if texto.endswith("\n") else texto + "\n")
+
+
+def ejecutar(rol, comando, cwd, entorno, timeout, seco, log_path=None):
     argv = argv_comando(comando)
     if seco:
         print(f"SECO {rol}: {' '.join(argv)}")
         return 0
     print(f"EJECUTA {rol}: {argv[-1] if isinstance(comando, str) else ' '.join(argv)}")
     try:
-        proc = subprocess.run(argv, cwd=cwd, env=entorno, timeout=timeout)
+        proc = subprocess.run(argv, cwd=cwd, env=entorno, timeout=timeout,
+                              capture_output=True, text=True, errors="replace")
+        salida = (proc.stdout or "") + (proc.stderr or "")
+        if salida.strip():
+            print(salida.rstrip())
+        _guardar_salida(log_path, rol, salida)
         print(f"FIN {rol}: codigo={proc.returncode}")
         return proc.returncode
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as exc:
+        parcial = ""
+        for flujo in (exc.stdout, exc.stderr):
+            if isinstance(flujo, bytes):
+                parcial += flujo.decode("utf-8", "replace")
+            elif isinstance(flujo, str):
+                parcial += flujo
+        _guardar_salida(log_path, rol, parcial + f"\n(timeout a los {timeout}s)\n")
         print(f"FIN {rol}: timeout a los {timeout}s")
         return 124
     except OSError as exc:
@@ -315,6 +336,7 @@ def preparar(rol_nombre, rol, base_dir, cfg_path, buzon_base, estado_dir):
         "lock_path": os.path.join(estado_dir, f"{rol_nombre}.lock"),
         "turno_path": os.path.join(estado_dir, "turno", f"{rol_nombre}.json"),
         "eventos_path": os.path.join(estado_dir, "eventos.jsonl"),
+        "log_path": os.path.join(estado_dir, "logs", f"{rol_nombre}.log"),
     })
 
 
@@ -349,7 +371,7 @@ def pasada_rol(ctx, cfg_path, timeout, seco):
             t0 = time.time()
             codigo = ejecutar(rol, ctx["comando"], ctx["cwd"],
                               entorno_de(rol, cfg_path, ctx["rol_dir"], "", ""),
-                              timeout, seco)
+                              timeout, seco, ctx["log_path"])
             if not seco:
                 anotar(ctx["eventos_path"], rol, "fin", resultado=codigo,
                        duracion_s=round(time.time() - t0, 2))
@@ -375,7 +397,7 @@ def pasada_rol(ctx, cfg_path, timeout, seco):
                 t0 = time.time()
                 codigo = ejecutar(rol, ctx["comando"], ctx["cwd"],
                                   entorno_de(rol, cfg_path, ctx["rol_dir"], ruta, hid),
-                                  timeout, seco)
+                                  timeout, seco, ctx["log_path"])
                 if not seco:
                     anotar(ctx["eventos_path"], rol, "fin", con=con, handoff_id=hid,
                            resultado=codigo, duracion_s=round(time.time() - t0, 2))

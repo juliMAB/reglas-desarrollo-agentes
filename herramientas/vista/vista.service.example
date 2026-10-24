@@ -1,0 +1,14 @@
+[Unit]
+Description=Vista del ciclo de agentes (read-only)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/proyectos/herramientas/reglas-desarrollo-agentes
+Environment=REPARTO_CONFIG=%h/proyectos/herramientas/reglas-desarrollo-agentes/reparto.json
+ExecStart=/usr/bin/python3 %h/proyectos/herramientas/reglas-desarrollo-agentes/herramientas/vista/vista.py --puerto 3040
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

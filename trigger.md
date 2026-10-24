@@ -89,7 +89,20 @@ Qué garantiza:
 El mensaje no se pasa por argumentos: el comando lo lee de `REPARTO_ARCHIVO` (y
 `REPARTO_HANDOFF_ID`). Por eso el mismo comando sirve para cualquier mensaje.
 
-## 5. Ejemplos por entorno
+## 5. Vista
+
+`herramientas/vista/vista.py --config reparto.json` sirve una página read-only en
+`127.0.0.1:3040` (puerto reservado). Una tarjeta por rol con: estado del turno, con quién, handoff,
+desde cuándo, trigger, modelo, pendientes y las últimas líneas de su salida.
+
+- No escribe nada: lee `.watcher/turno/*.json`, `.watcher/eventos.jsonl`, `.watcher/logs/*.log` y los
+  buzones.
+- `GET /api/estado` devuelve el mismo contenido en JSON; `GET /api/log?rol=qa` la salida completa.
+- Se refresca cada 2 s. Para publicarla fuera del host, se publica por Tailscale, nunca en `0.0.0.0`.
+- El detalle fino de "qué está pensando" solo está en la sesión del agente. La vista muestra lo que el
+  rol declara (`operacion`) o, si no declara nada, el turno y la salida del comando.
+
+## 6. Ejemplos por entorno
 
 Son ejemplos, no requisitos. La regla es la de arriba.
 
@@ -102,7 +115,7 @@ Son ejemplos, no requisitos. La regla es la de arriba.
 | Chat genérico | obligación en el turno, o el humano pegando el mensaje |
 | Consola | cron + `exec` del agente |
 
-## 6. Regla de oro
+## 7. Regla de oro
 
 Si un rol no puede ser despertado, el ciclo no se apoya en él. Se declara bloqueado, no se asume
 que "va a mirar".

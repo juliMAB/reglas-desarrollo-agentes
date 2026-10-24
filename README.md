@@ -49,6 +49,7 @@ Por tag, no por rama. Si la skill cambia, este addon decide cuándo migrar.
 | `reparto.md` | Explicación de los campos, reglas y uso del CLI |
 | `herramientas/reparto/` | CLI `reparto.py`: validar, ver, set, acceso (24 tests) |
 | `herramientas/watcher/` | Watcher: despierta al rol, deja eventos y estado del turno (22 tests) |
+| `herramientas/vista/` | Tablero read-only: estado, con quién y salida por rol (6 tests) |
 | `handoff.md` | Qué viaja entre roles y en qué formato |
 | `trigger.md` | Buzón + mecanismo que despierta a cada rol |
 | `CHANGELOG.md` | Qué cambió y por qué |
@@ -59,6 +60,7 @@ Por tag, no por rama. Si la skill cambia, este addon decide cuándo migrar.
 2. El orquestador escribe `reparto.md` con eso. El usuario lo revisa.
 3. Cada rol arranca en su sesión con su parte de `reparto.md` y el `handoff.md`.
 4. El trabajo se mueve por handoffs, no por conversación libre.
+5. Para ver qué hace cada rol: `vista.py --config reparto.json` y abrir `http://127.0.0.1:3040/`.
 
 Sin `reparto.md` completo, el trabajo no arranca. Un rol sin modelo asignado es un bloqueo, no una
 invitación a improvisar.
