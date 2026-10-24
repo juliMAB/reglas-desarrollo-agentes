@@ -7,7 +7,9 @@
       "cwd": "~/proyectos/android/frase-del-dia-app",
       "acceso": [
         { "ruta": "~/proyectos/android/frase-del-dia-app", "modo": "rw" },
-        { "ruta": "~/proyectos/android/frase-del-dia-contratos", "modo": "ro" }
+        { "ruta": "~/proyectos/android/frase-del-dia-contratos", "modo": "ro" },
+        { "ruta": "buzon/constructor", "modo": "rw" },
+        { "ruta": "buzon/qa", "modo": "rw" }
       ],
       "trigger": {
         "modo": "agente",
@@ -23,7 +25,9 @@
       "acceso": [
         { "ruta": "~/proyectos/android/frase-del-dia-app/build", "modo": "ro" },
         { "ruta": "~/proyectos/android/frase-del-dia-app/evidencia", "modo": "rw" },
-        { "ruta": "~/proyectos/android/frase-del-dia-app/src", "modo": "ro" }
+        { "ruta": "~/proyectos/android/frase-del-dia-app/src", "modo": "ro" },
+        { "ruta": "buzon/qa", "modo": "rw" },
+        { "ruta": "herramientas/reglas-desarrollo", "modo": "ro" }
       ],
       "trigger": {
         "modo": "agente",
@@ -37,7 +41,8 @@
       "entorno": "opencode",
       "cwd": "~/proyectos/android",
       "acceso": [
-        { "ruta": "~/proyectos/android", "modo": "rw" }
+        { "ruta": "~/proyectos/android", "modo": "rw" },
+        { "ruta": "buzon", "modo": "rw" }
       ],
       "trigger": {
         "modo": "usuario",

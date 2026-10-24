@@ -40,6 +40,11 @@ es un bloqueo declarado, no un olvido.
 6. **El QA recibe `ro` sobre las herramientas que necesita para verificar.** Si un criterio exige
    correr el validador o un script de prueba, esa herramienta tiene que estar en su `acceso`. Un
    criterio que el QA no puede ejecutar es un criterio mal entregado, no una falla del QA.
+7. **Cada rol tiene `rw` sobre su propio buzón** (`buzon/<rol>`). Sin escritura no puede cambiar el
+   estado del handoff, y queda sin poder cerrar su parte.
+8. **Quien entrega necesita escribir en el buzón del destinatario.** El constructor recibe `rw`
+   sobre `buzon/<destinatario>`, o el orquestador hace la entrega. Actualizar el buzón propio no
+   entrega nada.
 
 ## Reglas del reparto
 

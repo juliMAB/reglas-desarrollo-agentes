@@ -76,3 +76,15 @@ orquestador ◄──────────── aprobado ──────�
 - Archivos binarios (APK, capturas) dentro del mensaje: van por ruta o por repo.
 - Decisiones sin registro: si una decisión afecta el entregable, va al `README.md` del proyecto o
   al `CHANGELOG`.
+
+## 6. Entregar no es actualizar el propio buzón
+
+Entregar significa depositar el handoff en el buzón del **destinatario**:
+
+1. Copiar el archivo a `buzon/<destinatario>/`.
+2. Dejar `para` en el destinatario y `estado` en `entregado`.
+3. Conservar el `handoff_id` y agregar `reply_to` con el id del pedido original.
+4. El archivo que queda en el buzón propio es registro, no entrega.
+
+Un handoff que solo cambió de estado en el buzón del emisor **no fue entregado**: el destinatario
+no lo ve y el ciclo queda detenido sin error visible.
